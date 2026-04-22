@@ -6,7 +6,7 @@ import httpx
 import asyncio
 
 WEBHOOK_SECRET = "whsec_mocksecret"
-WEBHOOK_URL = "http://127.0.0.1:8000/webhook" # Assuming local testing port
+WEBHOOK_URL = "http://localhost:30080/payment/webhook" # Hitting APISIX Gateway
 
 def generate_stripe_signature(payload: str, secret: str) -> str:
     timestamp = str(int(time.time()))
