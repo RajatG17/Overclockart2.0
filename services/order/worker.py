@@ -4,7 +4,7 @@ import json
 import aio_pika
 from sqlalchemy.future import select
 from database import AsyncSessionLocal
-from models import OutboxEvent
+from models import OutboxEvent, Order
 
 RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
 
@@ -57,4 +57,40 @@ async def outbox_worker():
                     
         except Exception as e:
             print(f"Worker connection error: {e}")
+            await asyncio.sleep(5)
+
+async def process_saga_outcome(message: aio_pika.IncomingMessage):
+    async with message.process():
+        event = json.loads(message.body.decode())
+        order_id = int(event["order_id"])
+        
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(select(Order).where(Order.id == order_id))
+            order = result.scalars().first()
+            if order:
+                if message.type == "StockReserved":
+                    order.status = "CONFIRMED"
+                elif message.type == "StockReservationFailed":
+                    order.status = "CANCELLED"
+                session.add(order)
+                await session.commit()
+                print(f"Order {order_id} transitioned to {order.status}")
+
+async def order_consumer_worker():
+    while True:
+        try:
+            connection = await aio_pika.connect_robust(RABBITMQ_URL)
+            channel = await connection.channel()
+            exchange = await channel.declare_exchange("saga_exchange", aio_pika.ExchangeType.TOPIC)
+            
+            queue = await channel.declare_queue("order_saga_outcomes", durable=True)
+            await queue.bind(exchange, routing_key="catalog.stockreserved")
+            await queue.bind(exchange, routing_key="catalog.stockreservationfailed")
+            
+            print("Order consumer waiting for Saga outcomes...")
+            await queue.consume(process_saga_outcome)
+            
+            await asyncio.Future() 
+        except Exception as e:
+            print(f"Order consumer error: {e}")
             await asyncio.sleep(5)

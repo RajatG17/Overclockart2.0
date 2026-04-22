@@ -5,7 +5,7 @@ from database import engine, Base, get_db
 from models import Order, OrderCreate, OrderResponse, OutboxEvent
 from typing import List
 import asyncio
-from worker import outbox_worker
+from worker import outbox_worker, order_consumer_worker
 
 app = FastAPI(title="Order Service")
 
@@ -13,8 +13,9 @@ app = FastAPI(title="Order Service")
 async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    # Start the background worker for outbox polling
+    # Start the background workers
     asyncio.create_task(outbox_worker())
+    asyncio.create_task(order_consumer_worker())
 
 @app.post("/orders", response_model=OrderResponse, status_code=201)
 async def create_order(order: OrderCreate, db: AsyncSession = Depends(get_db)):
