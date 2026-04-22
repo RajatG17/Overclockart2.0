@@ -5,6 +5,8 @@ from database import engine, Base, get_db
 from models import Product, ProductCreate, ProductResponse
 from typing import List
 import os
+import asyncio
+from worker import catalog_worker
 
 app = FastAPI(title="Catalog Service")
 
@@ -12,6 +14,7 @@ app = FastAPI(title="Catalog Service")
 async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    asyncio.create_task(catalog_worker())
 
 @app.get("/products", response_model=List[ProductResponse])
 async def list_products(db: AsyncSession = Depends(get_db)):
