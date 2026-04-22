@@ -1,0 +1,196 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+spec:
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+      - name: auth-service
+        image: overclockkart/auth-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          value: "postgresql+asyncpg://postgres:postgres@postgres:5432/auth_db"
+        livenessProbe:
+          httpGet:
+            path: /openapi.json
+            port: 8000
+          initialDelaySeconds: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /openapi.json
+            port: 8000
+          initialDelaySeconds: 3
+          periodSeconds: 10
+        startupProbe:
+          httpGet:
+            path: /openapi.json
+            port: 8000
+          failureThreshold: 30
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  selector:
+    app: auth-service
+  ports:
+  - port: 8000
+    targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-service
+spec:
+  selector:
+    matchLabels:
+      app: catalog-service
+  template:
+    metadata:
+      labels:
+        app: catalog-service
+    spec:
+      containers:
+      - name: catalog-service
+        image: overclockkart/catalog-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          value: "postgresql+asyncpg://postgres:postgres@postgres:5432/catalog_db"
+        - name: RABBITMQ_URL
+          value: "amqp://guest:guest@rabbitmq:5672/"
+        livenessProbe:
+          httpGet:
+            path: /openapi.json
+            port: 8000
+        readinessProbe:
+          httpGet:
+            path: /openapi.json
+            port: 8000
+        startupProbe:
+          httpGet:
+            path: /openapi.json
+            port: 8000
+          failureThreshold: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-service
+spec:
+  selector:
+    app: catalog-service
+  ports:
+  - port: 8000
+    targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+spec:
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+      - name: order-service
+        image: overclockkart/order-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          value: "postgresql+asyncpg://postgres:postgres@postgres:5432/order_db"
+        - name: RABBITMQ_URL
+          value: "amqp://guest:guest@rabbitmq:5672/"
+        livenessProbe:
+          httpGet:
+            path: /openapi.json
+            port: 8000
+        readinessProbe:
+          httpGet:
+            path: /openapi.json
+            port: 8000
+        startupProbe:
+          httpGet:
+            path: /openapi.json
+            port: 8000
+          failureThreshold: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+spec:
+  selector:
+    app: order-service
+  ports:
+  - port: 8000
+    targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+spec:
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      containers:
+      - name: payment-service
+        image: overclockkart/payment-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        env:
+        - name: REDIS_URL
+          value: "redis://redis:6379/0"
+        livenessProbe:
+          httpGet:
+            path: /openapi.json
+            port: 8000
+        readinessProbe:
+          httpGet:
+            path: /openapi.json
+            port: 8000
+        startupProbe:
+          httpGet:
+            path: /openapi.json
+            port: 8000
+          failureThreshold: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+spec:
+  selector:
+    app: payment-service
+  ports:
+  - port: 8000
+    targetPort: 8000
