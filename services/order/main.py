@@ -56,3 +56,11 @@ async def create_order(order: OrderCreate, db: AsyncSession = Depends(get_db)):
     await db.refresh(new_order)
     
     return new_order
+
+@app.get("/orders/{order_id}", response_model=OrderResponse)
+async def get_order(order_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Order).where(Order.id == order_id))
+    order = result.scalars().first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return order
