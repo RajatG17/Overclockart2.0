@@ -5,3 +5,7 @@ asyncpg
 pydantic
 pydantic-settings==2.1.0
 aio-pika==9.3.1
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-instrumentation-fastapi
+prometheus-fastapi-instrumentator

@@ -3,9 +3,15 @@ from fastapi.responses import JSONResponse
 import stripe
 import os
 import json
+import json
 from redis_client import check_and_set_idempotency, redis_client
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(title="Payment Service")
+
+FastAPIInstrumentor.instrument_app(app)
+Instrumentator().instrument(app).expose(app)
 
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "whsec_mocksecret")
 stripe.api_key = os.getenv("STRIPE_API_KEY", "sk_test_mock")

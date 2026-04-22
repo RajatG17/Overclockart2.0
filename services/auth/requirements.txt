@@ -7,3 +7,7 @@ passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
 pydantic
 pydantic-settings==2.1.0
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-instrumentation-fastapi
+prometheus-fastapi-instrumentator

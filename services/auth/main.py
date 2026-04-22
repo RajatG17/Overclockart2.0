@@ -8,8 +8,13 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt
 import os
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(title="Auth Service")
+
+FastAPIInstrumentor.instrument_app(app)
+Instrumentator().instrument(app).expose(app)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

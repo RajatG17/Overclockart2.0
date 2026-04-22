@@ -6,8 +6,13 @@ from models import Order, OrderCreate, OrderResponse, OutboxEvent
 from typing import List
 import asyncio
 from worker import outbox_worker, order_consumer_worker
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(title="Order Service")
+
+FastAPIInstrumentor.instrument_app(app)
+Instrumentator().instrument(app).expose(app)
 
 @app.on_event("startup")
 async def startup():

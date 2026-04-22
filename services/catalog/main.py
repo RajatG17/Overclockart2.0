@@ -7,8 +7,13 @@ from typing import List
 import os
 import asyncio
 from worker import catalog_worker
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(title="Catalog Service")
+
+FastAPIInstrumentor.instrument_app(app)
+Instrumentator().instrument(app).expose(app)
 
 @app.on_event("startup")
 async def startup():
