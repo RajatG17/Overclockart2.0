@@ -8,6 +8,9 @@ from .models import User
 from .schemas import RegisterRequest, UserResponse, LoginRequest, TokenResponse
 from .security import hash_password, create_access_token, verify_password
 
+from .dependencies import get_current_user
+
+
 router = APIRouter(
     prefix="/auth",
     tags=["auth"],
@@ -78,4 +81,10 @@ async def login(
         access_token=access_token
     )
 
+
+@router.get("/me", response_model=UserResponse)
+async def get_me(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    return current_user
 

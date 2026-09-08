@@ -4,8 +4,11 @@ from datetime import datetime, timedelta, timezone
 import jwt
 
 from .config import settings
+from fastapi.security import HTTPBearer
 
 password_hash = PasswordHash.recommended()
+
+bearer_scheme = HTTPBearer()
 
 def hash_password(password: str) -> str:
     return password_hash.hash(password)
