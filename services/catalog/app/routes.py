@@ -1,4 +1,4 @@
-import uuid 
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select, update
@@ -8,8 +8,8 @@ from .database import get_db
 from .models import Inventory, Product
 from .schemas import (
     InventoryOperationRequest,
-    InventoryResponse, 
-    ProductCreateRequest, 
+    InventoryResponse,
+    ProductCreateRequest,
     ProductResponse,
 )
 

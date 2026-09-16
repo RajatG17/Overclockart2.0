@@ -10,6 +10,7 @@ from sqlalchemy import (
     String,
 )
 
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import CheckConstraint
 
@@ -80,5 +81,50 @@ class Inventory(Base):
         back_populates="inventory",
     )
 
-
+class OutboxEvent(Base):
+    __tablename__ = "outbox_events"
+    
+    id: Mapped[uuid.UUID] = mapped_column(
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    
+    aggregate_id: Mapped[uuid.UUID] = mapped_column(
+        nullable=False,
+        index=True,
+    )
+    
+    event_type: Mapped[str] = mapped_column(
+        nullable=False,
+        index=True,
+    )
+    
+    payload: Mapped[dict] = mapped_column(
+        JSONB,
+        nullable=False,
+    )
+    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        default=None, 
+        index=True,
+    )
+    
+class ProcessedEvent(Base):
+    __tablename__ = "processed_events"
+    
+    event_id: Mapped[uuid.UUID] = mapped_column(
+        primary_key=True,
+    )
+    
+    event_type: Mapped[str] = mapped_column(
+        nullable=False,
+    )
+    
+    processed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
 

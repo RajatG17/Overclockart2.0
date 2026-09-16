@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from .database import Base
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -31,5 +32,3 @@ class User(Base):
         default=datetime.now,
         nullable=False,
     )
-
-

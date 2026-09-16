@@ -7,3 +7,4 @@ alembic
 psycopg[binary]
 pydantic-settings
 
+aio-pika

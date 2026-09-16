@@ -1,8 +1,8 @@
-"""add inventory quantity constraints
+"""add messaging tables
 
-Revision ID: 34ba239a1fff
-Revises: de08f63b0778
-Create Date: 2026-09-08 12:01:50.382341
+Revision ID: 73ac85628ca3
+Revises: 4a85ba61689b
+Create Date: 2026-09-16 15:20:19.439296
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '34ba239a1fff'
-down_revision: Union[str, Sequence[str], None] = 'de08f63b0778'
+revision: str = '73ac85628ca3'
+down_revision: Union[str, Sequence[str], None] = '4a85ba61689b'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

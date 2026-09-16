@@ -19,6 +19,14 @@ from .database import Base
 
 class OrderStatus(str, enum.Enum):
     PENDING = "PENDING"
+    
+    RESERVING_INVENTORY= "RESERVING_INVENTORY"
+    INVENTORY_RESERVED = "INVENTORY_RESERVED"
+    
+    PAYMENT_PENFDING = "PAYMENT_PENDING"
+    
+    COMPENSATING = "COMPENSATING"
+    
     FAILED = "FAILED"
     COMPLETED = "COMPLETED"
 
@@ -156,7 +164,21 @@ class OutboxEvent(Base):
         index=True,
     )
 
-
-
+class ProcessedEvent(Base):
+    __tablename__ = "processed_events"
+    
+    event_id: Mapped[uuid.UUID] = mapped_column(
+        primary_key=True,
+    )
+    
+    event_type: Mapped[str] = mapped_column(
+        nullable=False,
+    )
+    
+    processed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
 
 
