@@ -45,7 +45,7 @@ async def setup_rabbitmq():
         "order.created",
         "inventory.reserved",
         "inventory.reservation_failed",
-        "payment.succeded",
+        "payment.succeeded",
         "payment.failed",
         "inventory.released",
     ]
@@ -77,7 +77,7 @@ async def handle_order_created(
             event_id,
         )
         
-        if existing is None:
+        if existing is not None:
             return
         
         order = await db.get(
@@ -134,38 +134,6 @@ async def handle_order_created(
         
         await db.commit()
 
-async def process_message(
-    message: aio_pika.IncomingMessage,
-) -> None:
-    try:
-        event = json.loads(
-            message.body.decode("utf-8")
-        )
-        
-        
-        event_type = event.get(
-            "event_type"
-        )
-        
-        if event_type == "OrderCreated":
-            await handle_order_created(
-                event
-            )
-        else:
-            raise ValueError(
-                f"Unsupported event type: {event_type}"
-            )
-            
-        await message.ack()
-    except Exception as exc:
-        print(
-            f"Failed processing message: {exc}"
-        )
-        
-        await message.nack(
-            requeue=True
-        )
-
 async def handle_inventory_reserved(
     event: dict,
 ) -> None:
@@ -198,7 +166,7 @@ async def handle_inventory_reserved(
                 f"Order not found: {order_id}"
             )
             
-        order_status = (
+        order.status = (
             OrderStatus.INVENTORY_RESERVED
         )
         
@@ -210,7 +178,10 @@ async def handle_inventory_reserved(
             ),
             "event_type": "PaymentRequested",
             "event_version": 1,
-            "occured_at": {
+            "occured_at": datetime.now(
+                timezone.utc
+            ).isoformat(),
+            "data" :{
                 "order_id": str(order_id),
                 "total": data["total"],
                 "items": data["items"],
@@ -218,7 +189,7 @@ async def handle_inventory_reserved(
         }
         
         order.status = (
-            OrderStatus.PAYMENT_PENFDING
+            OrderStatus.PAYMENT_PENDING
         )
         
         db.add(
@@ -238,6 +209,83 @@ async def handle_inventory_reserved(
         )
         
         await db.commit()
+        
+async def handle_inventory_failed(
+    event: dict,
+) -> None:
+    event_id = uuid.UUID(
+        event["event_id"]
+    )
+    
+    order_id = uuid.UUID(
+        event["data"]["order_id"]
+    )
+    
+    async with SessionLocal() as db:
+        existing = await db.get(
+            ProcessedEvent,
+            event_id
+        )
+        
+        if existing is not None:
+            return
+        
+        order = await db.get(
+            Order,
+            order_id,
+        )
+        
+        if order is None:
+            raise RuntimeError(
+                f"Order not found: {order_id}"
+            )
+            
+        order.status = OrderStatus.FAILED
+        
+        db.add(
+            ProcessedEvent(
+                event_id = event_id,
+                event_type = event["event_type"],
+            )
+        )
+        
+        await db.commit()
+
+async def process_message(
+    message: aio_pika.IncomingMessage,
+) -> None:
+    try:
+        event = json.loads(
+            message.body.decode("utf-8")
+        )
+        
+        
+        event_type = event.get(
+            "event_type"
+        )
+        
+        if event_type == "OrderCreated":
+            await handle_order_created(
+                event
+            )
+        elif event_type == "InventoryReserved":
+            await handle_inventory_reserved(event)
+        elif event_type == "InventoryReservationFailed":
+            await handle_inventory_failed(event)
+        else:
+            raise ValueError(
+                f"Unsupported event type: {event_type}"
+            )
+        await message.ack()
+        
+    except Exception as exc:
+        print(
+            f"Failed processing message: {exc}"
+        )
+        
+        await message.nack(
+            requeue=True
+        )
 
 async def main()  -> None:
     connection, queue = (
@@ -250,7 +298,7 @@ async def main()  -> None:
         )
         
         print(
-            "Order sagea consumer started"
+            "Order saga consumer started"
         )
         
         await asyncio.Future()

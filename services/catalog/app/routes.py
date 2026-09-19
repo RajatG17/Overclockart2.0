@@ -181,7 +181,7 @@ async def release_inventory(
         if inventory is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Inventory not founc",
+                detail="Inventory not found",
             )
 
         raise HTTPException(

@@ -15,7 +15,6 @@ from .models import (
     ProcessedEvent,
 )
 
-
 EXCHANGE_NAME = "commerce.events"
 QUEUE_NAME = "catalog.inventory"
 
@@ -100,7 +99,9 @@ async def reserve_items(
             statement
         )
         
-        return result.rowcount != 0
+        if result.rowcount == 0:
+            return False
+    return True
     
 async def handle_reservation_request(
     event: dict,

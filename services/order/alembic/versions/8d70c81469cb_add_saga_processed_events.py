@@ -28,22 +28,18 @@ def upgrade() -> None:
     )
     
     op.execute(
-        "ALTER TYPE order_staus"
-        "ADD VALUE IF NOT EXISTS 'RESERVING_INTENTORY'"
+        "ALTER TYPE order_status ADD VALUE IF NOT EXISTS 'RESERVING_INTENTORY'"
     )
     op.execute(
-    "ALTER TYPE order_status "
-    "ADD VALUE IF NOT EXISTS 'INVENTORY_RESERVED'"
+    "ALTER TYPE order_status ADD VALUE IF NOT EXISTS 'INVENTORY_RESERVED'"
     )
 
     op.execute(
-        "ALTER TYPE order_status "
-        "ADD VALUE IF NOT EXISTS 'PAYMENT_PENDING'"
+        "ALTER TYPE order_status ADD VALUE IF NOT EXISTS 'PAYMENT_PENDING'"
     )
 
     op.execute(
-        "ALTER TYPE order_status "
-        "ADD VALUE IF NOT EXISTS 'COMPENSATING'"
+        "ALTER TYPE order_status ADD VALUE IF NOT EXISTS 'COMPENSATING'"
     )
     # ### end Alembic commands ###
 

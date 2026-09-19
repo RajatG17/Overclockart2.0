@@ -1,21 +1,14 @@
 import enum
 import uuid
-
-from datetime import timezone, datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import (
-    DateTime,
-    Enum,
-    ForeignKey,
-    Numeric,
-    CheckConstraint
-)
+from sqlalchemy import CheckConstraint, DateTime, Enum, ForeignKey, Numeric
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from sqlalchemy.dialects.postgresql import JSONB
-
 from .database import Base
+
 
 class OrderStatus(str, enum.Enum):
     PENDING = "PENDING"
@@ -23,7 +16,7 @@ class OrderStatus(str, enum.Enum):
     RESERVING_INVENTORY= "RESERVING_INVENTORY"
     INVENTORY_RESERVED = "INVENTORY_RESERVED"
     
-    PAYMENT_PENFDING = "PAYMENT_PENDING"
+    PAYMENT_PENDING = "PAYMENT_PENDING"
     
     COMPENSATING = "COMPENSATING"
     
