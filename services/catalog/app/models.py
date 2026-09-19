@@ -111,6 +111,13 @@ class OutboxEvent(Base):
         index=True,
     )
     
+    published_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        default=None,
+        index=True,
+    )
+    
 class ProcessedEvent(Base):
     __tablename__ = "processed_events"
     

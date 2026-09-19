@@ -165,7 +165,80 @@ async def process_message(
         await message.nack(
             requeue=True
         )
+
+async def handle_inventory_reserved(
+    event: dict,
+) -> None:
+    event_id = uuid.UUID(
+        event["event_id"]
+    )
+    
+    data = event["data"]
+    
+    order_id = uuid.UUID(
+        data["order_id"]
+    )
+    
+    async with SessionLocal() as db:
+        existing = await db.get(
+            ProcessedEvent,
+            event_id
+        )
         
+        if existing is not None:
+            return 
+        
+        order = await db.get(
+            Order,
+            order_id
+        )
+        
+        if order is None:
+            raise RuntimeError(
+                f"Order not found: {order_id}"
+            )
+            
+        order_status = (
+            OrderStatus.INVENTORY_RESERVED
+        )
+        
+        outgoing_event_id = uuid.uuid4()
+        
+        outgoing_payload = {
+            "event_id": str(
+                outgoing_event_id
+            ),
+            "event_type": "PaymentRequested",
+            "event_version": 1,
+            "occured_at": {
+                "order_id": str(order_id),
+                "total": data["total"],
+                "items": data["items"],
+            },
+        }
+        
+        order.status = (
+            OrderStatus.PAYMENT_PENFDING
+        )
+        
+        db.add(
+            OutboxEvent(
+                id=outgoing_event_id,
+                aggregate_id = order_id,
+                event_type="PaymentRequested",
+                payload=outgoing_payload,
+            )
+        )
+        
+        db.add(
+            ProcessedEvent(
+                event_id = event_id,
+                event_type = event["event_type"],
+            )
+        )
+        
+        await db.commit()
+
 async def main()  -> None:
     connection, queue = (
         await setup_rabbitmq()
